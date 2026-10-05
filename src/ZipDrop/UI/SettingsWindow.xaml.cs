@@ -38,6 +38,7 @@ internal partial class SettingsWindow : Window
             _ => SensMedium,
         }).IsChecked = true;
         ShortcutText.Text = current.GlobalShortcut;
+        VersionText.Text = $"ZipDrop {AppInfo.Version}";
         _loading = false;
 
         SourceInitialized += (_, _) => ThemeService.ApplyTitleBar(this);
@@ -72,6 +73,14 @@ internal partial class SettingsWindow : Window
     {
         target.Text = message ?? "";
         target.Visibility = message is null ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>Opens the link in the user's browser (ZipDrop itself never goes online).</summary>
+    private void Link_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException) { }
+        e.Handled = true;
     }
 
     // ---------- Shortcut capture ----------
