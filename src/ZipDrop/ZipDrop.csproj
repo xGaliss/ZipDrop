@@ -10,7 +10,7 @@
     <AssemblyName>ZipDrop</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\ZipDrop.ico</ApplicationIcon>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Product>ZipDrop</Product>
     <Description>Build ZIPs while you work.</Description>
     <!-- Startup: tiered PGO + ReadyToRun on publish -->

@@ -1,37 +1,44 @@
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
 using static ZipDrop.Interop.NativeMethods;
 
 namespace ZipDrop.Services;
 
+/// <summary>One tray-menu entry; <see cref="Label"/> null means a separator.</summary>
+internal sealed record TrayMenuItem(string? Label, Action? Action = null)
+{
+    public static readonly TrayMenuItem Separator = new(Label: null);
+}
+
 /// <summary>
-/// Minimal Shell_NotifyIcon wrapper (no WinForms dependency) with a WPF context menu,
-/// so the menu follows the app theme and the process stays light.
+/// Minimal Shell_NotifyIcon wrapper (no WinForms dependency).
+/// The context menu is a native Win32 popup (TrackPopupMenuEx): a WPF ContextMenu opened from a
+/// tray callback loses activation when Windows closes the "hidden icons" flyout and vanishes
+/// instantly. The native menu runs its own modal loop and follows the system dark mode.
 /// </summary>
 internal sealed class TrayIcon : IDisposable
 {
     private const uint CallbackMessage = WM_APP + 1;
     private readonly MessageWindow _window;
+    private readonly IReadOnlyList<TrayMenuItem> _menu;
     private readonly uint _taskbarCreatedMsg;
     private readonly IntPtr _icon;
     private string _tooltip = "ZipDrop";
     private bool _added;
+    private bool _menuOpen;
 
-    public TrayIcon(MessageWindow window, ContextMenu menu)
+    static TrayIcon() => EnableDarkMenus();
+
+    public TrayIcon(MessageWindow window, IReadOnlyList<TrayMenuItem> menu)
     {
         _window = window;
-        Menu = menu;
+        _menu = menu;
         _taskbarCreatedMsg = RegisterWindowMessage("TaskbarCreated");
         _icon = LoadAppIcon();
         _window.Message += OnMessage;
         Add();
     }
 
-    public ContextMenu Menu { get; }
-
-    /// <summary>Left click / double click on the icon.</summary>
+    /// <summary>Left click on the icon.</summary>
     public event Action? Activated;
 
     public string Tooltip
@@ -99,12 +106,48 @@ internal sealed class TrayIcon : IDisposable
 
     private void ShowMenu()
     {
-        // Required so the menu closes when the user clicks elsewhere (documented Shell_NotifyIcon quirk).
-        SetForegroundWindow(_window.Handle);
-        Menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
-        Menu.IsOpen = true;
-        if (PresentationSource.FromVisual(Menu) is HwndSource source)
-            SetForegroundWindow(source.Handle);
+        if (_menuOpen) return;
+        _menuOpen = true;
+        var hMenu = CreatePopupMenu();
+        try
+        {
+            for (var i = 0; i < _menu.Count; i++)
+            {
+                if (_menu[i].Label is { } label) AppendMenu(hMenu, MF_STRING, (UIntPtr)(i + 1), label);
+                else AppendMenu(hMenu, MF_SEPARATOR, UIntPtr.Zero, null);
+            }
+
+            GetCursorPos(out var pt);
+            // Documented requirements for notification-area menus: the owner must be foreground while
+            // the menu is up, and a dummy message afterwards lets the menu dismiss correctly next time.
+            SetForegroundWindow(_window.Handle);
+            var cmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_BOTTOMALIGN,
+                pt.X, pt.Y, _window.Handle, IntPtr.Zero);
+            PostMessage(_window.Handle, WM_NULL, IntPtr.Zero, IntPtr.Zero);
+
+            // Run the action after we leave the window procedure (it may open dialogs).
+            if (cmd > 0 && cmd <= _menu.Count && _menu[cmd - 1].Action is { } action)
+                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(action);
+        }
+        finally
+        {
+            DestroyMenu(hMenu);
+            _menuOpen = false;
+        }
+    }
+
+    /// <summary>
+    /// Opt the process into dark Win32 menus when Windows uses dark mode (uxtheme ordinals 135/136,
+    /// used by Explorer, Notepad++, PowerToys…). Undocumented: ignored if unavailable.
+    /// </summary>
+    private static void EnableDarkMenus()
+    {
+        try
+        {
+            SetPreferredAppMode(1 /* AllowDark: follow system */);
+            FlushMenuThemes();
+        }
+        catch (Exception ex) when (ex is EntryPointNotFoundException or DllNotFoundException) { }
     }
 
     private static IntPtr LoadAppIcon()
@@ -126,4 +169,37 @@ internal sealed class TrayIcon : IDisposable
         }
         if (_icon != IntPtr.Zero) DestroyIcon(_icon);
     }
+
+    // ---- Menu interop (only used here) ----
+    private const int WM_NULL = 0x0000;
+    private const uint MF_STRING = 0x0000;
+    private const uint MF_SEPARATOR = 0x0800;
+    private const uint TPM_RIGHTBUTTON = 0x0002;
+    private const uint TPM_BOTTOMALIGN = 0x0020;
+    private const uint TPM_NONOTIFY = 0x0080;
+    private const uint TPM_RETURNCMD = 0x0100;
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CreatePopupMenu();
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool AppendMenu(IntPtr hMenu, uint uFlags, UIntPtr uIDNewItem, string? lpNewItem);
+
+    [DllImport("user32.dll")]
+    private static extern int TrackPopupMenuEx(IntPtr hMenu, uint uFlags, int x, int y, IntPtr hwnd, IntPtr lptpm);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DestroyMenu(IntPtr hMenu);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool PostMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("uxtheme.dll", EntryPoint = "#135")]
+    private static extern int SetPreferredAppMode(int mode);
+
+    [DllImport("uxtheme.dll", EntryPoint = "#136")]
+    private static extern void FlushMenuThemes();
 }

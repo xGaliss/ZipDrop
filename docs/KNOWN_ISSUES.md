@@ -86,8 +86,10 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
 
 - *Launch at startup* escribe en `HKCU\…\Run`. Con políticas de grupo que bloqueen el registro, el ajuste
   no tiene efecto (sin error visible).
-- El menú contextual de bandeja es WPF y sigue el tema claro/oscuro de las apps; no es el menú nativo
-  de Windows 11.
+- El menú de bandeja es el menú nativo de Win32. El modo oscuro usa APIs no documentadas de uxtheme;
+  en versiones de Windows donde no existan, el menú se verá claro.
+- *Resuelto en v0.1.1:* en v0.1.0 el menú de bandeja desaparecía al instante si el icono estaba en el
+  panel de iconos ocultos (D-004).
 
 ## ZIP
 

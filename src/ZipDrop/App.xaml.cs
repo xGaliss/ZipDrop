@@ -166,23 +166,14 @@ public partial class App : Application
 
     // ---------- Tray ----------
 
-    private ContextMenu BuildTrayMenu()
-    {
-        var menu = new ContextMenu();
-        menu.Items.Add(MenuItem("Open ZipDrop", () => _overlay.ShowNearCursor()));
-        menu.Items.Add(MenuItem("New basket", NewBasket));
-        menu.Items.Add(MenuItem("Settings", OpenSettings));
-        menu.Items.Add(new Separator());
-        menu.Items.Add(MenuItem("Exit", ExitApp));
-        return menu;
-    }
-
-    private static MenuItem MenuItem(string header, Action onClick)
-    {
-        var item = new MenuItem { Header = header };
-        item.Click += (_, _) => onClick();
-        return item;
-    }
+    private TrayMenuItem[] BuildTrayMenu() =>
+    [
+        new("Open ZipDrop", () => _overlay.ShowNearCursor()),
+        new("New basket", NewBasket),
+        new("Settings", OpenSettings),
+        TrayMenuItem.Separator,
+        new("Exit", ExitApp),
+    ];
 
     private void UpdateTooltip()
     {

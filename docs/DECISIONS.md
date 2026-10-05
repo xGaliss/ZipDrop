@@ -32,9 +32,17 @@ testearlos con xUnit y con secuencias simuladas. La app WPF solo es UI + integra
 
 ## D-004 · Bandeja con `Shell_NotifyIcon` propio, no WinForms `NotifyIcon`
 
-Evita cargar WinForms (memoria y conflictos de tipos con WPF) y permite un menú contextual WPF con el
-mismo tema. Se re-añade el icono al recibir `TaskbarCreated` (reinicio de Explorer). Por eso la ventana
-de mensajes es top-level oculta y no `HWND_MESSAGE` (estas no reciben broadcasts).
+Evita cargar WinForms (memoria y conflictos de tipos con WPF). Se re-añade el icono al recibir
+`TaskbarCreated` (reinicio de Explorer). Por eso la ventana de mensajes es top-level oculta y no
+`HWND_MESSAGE` (estas no reciben broadcasts).
+
+**Menú contextual nativo (v0.1.1).** La v0.1.0 usaba un `ContextMenu` de WPF: con el icono dentro del
+panel de "iconos ocultos" de Windows 11, al hacer clic derecho el panel se cierra, roba la activación y el
+menú desaparecía a los ~200 ms (bug reportado y reproducido con `tools/e2e/tray-menu.ps1`). Ahora es un
+menú Win32 (`CreatePopupMenu` + `TrackPopupMenuEx` con `SetForegroundWindow` antes y `WM_NULL` después,
+el patrón documentado para el área de notificación). Sigue el modo oscuro del sistema vía
+`SetPreferredAppMode`/`FlushMenuThemes` (uxtheme, ordinales 135/136, no documentados; si no existen se
+ignora y el menú sale claro). La acción elegida se ejecuta diferida en el Dispatcher, fuera del WndProc.
 
 ## D-005 · La cesta guarda referencias, nunca copias
 
