@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ZipDrop</RootNamespace>
+    <AssemblyName>ZipDrop</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\ZipDrop.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Product>ZipDrop</Product>
+    <Description>Build ZIPs while you work.</Description>
+    <!-- Startup: tiered PGO + ReadyToRun on publish -->
+    <TieredPGO>true</TieredPGO>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZipDrop.Core\ZipDrop.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\ZipDrop.ico" />
+  </ItemGroup>
+
+</Project>
