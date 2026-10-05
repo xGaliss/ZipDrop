@@ -17,7 +17,8 @@ conflicto de nombres, *Create ZIP* con diálogo nativo, ajustes.
 - [x] Pulido de UI: iconos reales, pila de vista previa, zona de drop, cabecera con logo.
 - [x] Licencia MIT, README en inglés con GIF, CONTRIBUTING, plantillas de issues.
 - [x] CI (build + tests) y release automática por tag (instalador, portable, framework-dependent).
-- [ ] Hacer público el repo, subir `docs/media/social-preview.png` como *social preview* y publicar el tag `v0.1.0`.
+- [x] Repo público, topics y release `v0.1.0` (instalador, portable, framework-dependent, SHA256SUMS).
+- [ ] Subir `docs/media/social-preview.png` como *social preview* (Settings → General; no hay API).
 - [ ] Publicar en comunidades (borradores locales en `promo/`, fuera del repo).
 
 ## Siguiente (pulido pendiente, pequeño)
