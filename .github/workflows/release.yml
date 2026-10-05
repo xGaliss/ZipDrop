@@ -45,7 +45,8 @@ jobs:
           Compress-Archive out/portable/* "dist/ZipDrop-$env:VERSION-win-x64-portable.zip"
           Compress-Archive out/fd/* "dist/ZipDrop-$env:VERSION-win-x64-framework-dependent.zip"
           Copy-Item "artifacts/installer/ZipDrop-Setup-$env:VERSION.exe" dist/
-          Get-ChildItem dist | ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash, $_.Name } | Out-File dist/SHA256SUMS.txt
+          $sums = Get-ChildItem dist -File | ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash, $_.Name }
+          $sums | Out-File dist/SHA256SUMS.txt -Encoding ascii
 
       - uses: softprops/action-gh-release@v3
         with:
