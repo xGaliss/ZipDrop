@@ -6,3 +6,7 @@ TestResults/
 *.suo
 .vs/
 .idea/
+
+# local screenshots from tools/e2e and launch drafts
+tools/e2e/*.png
+promo/

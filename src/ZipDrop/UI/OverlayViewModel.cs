@@ -143,6 +143,25 @@ internal sealed class OverlayViewModel : Observable
         ? $"{SizeFormatter.Format(Basket.TotalBytes)}…"
         : SizeFormatter.Format(Basket.TotalBytes);
 
+    /// <summary>Icons of the last (up to 3) items added, back to front, for the fanned preview stack.</summary>
+    private IReadOnlyList<System.Windows.Media.ImageSource> PreviewIcons =>
+        Basket.Items.Reverse().Take(3).Reverse()
+            .Select(i => Services.ShellIcons.For(i, Services.ShellIcons.Size.ExtraLarge))
+            .OfType<System.Windows.Media.ImageSource>()
+            .ToList();
+
+    public System.Windows.Media.ImageSource? PreviewIcon1 => PreviewAt(0);
+    public System.Windows.Media.ImageSource? PreviewIcon2 => PreviewAt(1);
+    public System.Windows.Media.ImageSource? PreviewIcon3 => PreviewAt(2);
+
+    private System.Windows.Media.ImageSource? PreviewAt(int index)
+    {
+        // Slot 3 is the front (most recent); with fewer items the back slots stay empty.
+        var icons = PreviewIcons;
+        var slot = index - (3 - icons.Count);
+        return slot >= 0 ? icons[slot] : null;
+    }
+
     public bool HasMissing => Basket.MissingCount > 0;
     public string MissingText => $"{Basket.MissingCount} missing";
 
@@ -322,6 +341,8 @@ internal sealed class OverlayViewModel : Observable
     {
         RaiseAll(nameof(CountText), nameof(SizeText), nameof(HasMissing), nameof(MissingText),
             nameof(ShowEmpty), nameof(ShowSummary), nameof(ShowList));
+        if (e.PropertyName == nameof(Basket.Count))
+            RaiseAll(nameof(PreviewIcon1), nameof(PreviewIcon2), nameof(PreviewIcon3));
         if (Basket.IsEmpty) IsListExpanded = false;
         CommandManager.InvalidateRequerySuggested();
     }

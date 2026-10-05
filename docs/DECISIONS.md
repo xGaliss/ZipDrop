@@ -163,3 +163,22 @@ algún archivo (bloqueado/sin acceso): así el usuario puede reintentar sin volv
 `build.ps1`: tests → `dotnet publish` Release win-x64 con ReadyToRun (arranque ~0,3 s).
 Por defecto *framework-dependent* (~0,5 MB, requiere .NET Desktop Runtime); `-SelfContained` produce un
 exe único comprimido (~64 MB) sin requisitos. Instalador con Inno Setup 6 si está instalado.
+
+## D-019 · Iconos reales del sistema en la cesta
+
+La cesta muestra los iconos de tipo de archivo de Windows (los del Explorador): una pila "en abanico" de
+los 3 últimos ítems y un icono por fila en la lista. `ShellIcons` usa `SHGetFileInfo` con
+`SHGFI_USEFILEATTRIBUTES` (no toca el disco: rápido y funciona con archivos *missing*) +
+`SHGetImageList` (48 px) y cachea por extensión. Consecuencia: los iconos dependen de las asociaciones
+de archivo del usuario (ver KNOWN_ISSUES).
+
+## D-020 · Open source (MIT) y distribución
+
+Gratis y open source: ZipDrop instala un hook global de ratón, así que poder auditar el código es parte
+de la confianza del producto. Releases automáticas al subir un tag `v*` (`.github/workflows/release.yml`):
+instalador Inno Setup, exe portable (self-contained) y build framework-dependent, con `SHA256SUMS.txt`.
+CI compila con `-warnaserror` y ejecuta los tests en cada push/PR.
+
+Material gráfico reproducible en `tools/media` (capturas con fondo limpio, imagen social, GIF de demo
+grabado con el Explorador real). La demo deja **fuera del encuadre** el panel de navegación del
+Explorador y no graba el diálogo de guardar, porque muestran carpetas y nombre del usuario.

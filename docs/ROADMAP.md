@@ -9,8 +9,16 @@
 | 3 | Gesto shake (investigación + implementación) | ✅ Hecho (ver D-009 y KNOWN_ISSUES) |
 | 4 | Pulido: animaciones, errores, DPI, rendimiento, instalador | ✅ Hecho (instalador: script listo, compilarlo requiere Inno Setup 6) |
 
-Verificado end-to-end en Windows 11 (25H2): drop OLE real, shake durante drag, hotkey, missing,
+Verificado end-to-end en Windows 11: drop OLE real, **shake con el Explorador real**, hotkey, missing,
 conflicto de nombres, *Create ZIP* con diálogo nativo, ajustes.
+
+## Lanzamiento v0.1.0
+
+- [x] Pulido de UI: iconos reales, pila de vista previa, zona de drop, cabecera con logo.
+- [x] Licencia MIT, README en inglés con GIF, CONTRIBUTING, plantillas de issues.
+- [x] CI (build + tests) y release automática por tag (instalador, portable, framework-dependent).
+- [ ] Hacer público el repo, subir `docs/media/social-preview.png` como *social preview* y publicar el tag `v0.1.0`.
+- [ ] Publicar en comunidades (borradores locales en `promo/`, fuera del repo).
 
 ## Siguiente (pulido pendiente, pequeño)
 

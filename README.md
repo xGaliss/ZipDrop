@@ -1,83 +1,112 @@
+<div align="center">
+
+<img src="docs/media/social-preview.png" alt="ZipDrop — Build ZIPs while you work" width="720">
+
 # ZipDrop
 
-**Build ZIPs while you work.**
+**Build ZIPs while you work.** A tiny Windows utility: collect files from anywhere into a floating
+basket, then create one ZIP — no temp folder, no copying, no WinRAR.
 
-ZipDrop es una micro-utilidad para Windows: recopilas archivos y carpetas desde cualquier sitio en una
-cesta flotante y, cuando terminas, pulsas **Create ZIP**. Sin carpetas temporales, sin copiar nada,
-sin abrir WinRAR/7-Zip.
+[Download](https://github.com/xGaliss/ZipDrop/releases/latest) ·
+[How it works](#how-it-works) ·
+[Build from source](#build-from-source)
+
+</div>
+
+![ZipDrop demo: shake while dragging from File Explorer, drop files from three folders, create one ZIP](docs/media/demo.gif)
+
+## Why
+
+You need to send a photo from *Pictures*, a contract from *Documents* and a whole project folder.
+Normally: make a temp folder, copy everything in, zip it, delete the temp folder.
+
+With ZipDrop: **drag → shake → drop**, keep working, **drop more**, **Create ZIP**. Done.
 
 ```
 FILES → SHAKE → DROP → CONTINUE WORKING → MORE FILES → DROP → CREATE ZIP
 ```
 
-ZipDrop **no** es un gestor de archivos ni un compresor completo. Si una función no mejora ese flujo,
-no está aquí.
+## Features
 
-## Uso
+- **Shake to summon.** While dragging files in File Explorer or on the desktop, shake the mouse
+  left-right and the basket appears next to your cursor.
+- **Global shortcut.** `Ctrl+Shift+Z` (configurable) shows/hides the basket from anywhere.
+- **References, not copies.** Nothing is copied until you zip. Files that get moved or deleted
+  meanwhile are flagged as *missing* — you see exactly which one.
+- **Safe ZIPs.** Same-named files from different folders become `report.pdf` and `report (2).pdf`;
+  nothing is ever silently overwritten. Folders keep their structure, Unicode names and long paths work,
+  already-compressed files (photos, videos, Office docs) are stored without wasting CPU.
+- **Never touches your originals.** Drops are always *Copy*, never *Move*.
+- **Lives in the tray.** ~0.5 MB app, starts in ~0.3 s, idles at a few MB of RAM.
+- **Send To.** The installer can add *Send to → ZipDrop* to Explorer's context menu.
+- **100% local.** No account, no cloud, no telemetry, no network access at all.
 
-| Acción | Cómo |
+<p align="center">
+  <img src="docs/media/items.png" alt="Basket with item list and a missing file" width="300">
+  &nbsp;&nbsp;
+  <img src="docs/media/settings.png" alt="Settings" width="380">
+</p>
+
+## Install
+
+Grab the latest build from [Releases](https://github.com/xGaliss/ZipDrop/releases/latest):
+
+| File | For |
 |---|---|
-| Abrir la cesta mientras arrastras archivos | Arrastra desde el Explorador o el escritorio y **agita el ratón izquierda-derecha** (← → ← →) |
-| Abrir / ocultar la cesta | **Ctrl + Shift + Z** (configurable) o clic en el icono de la bandeja |
-| Añadir archivos | Suéltalos sobre la cesta. También: *Enviar a → ZipDrop* (si lo instalaste) o `ZipDrop.exe <rutas…>` |
-| Ver qué contiene / qué falta | Botón **Items** o el aviso **N missing** |
-| Crear el ZIP | **Create ZIP** → eliges nombre y carpeta (sugerido `Archive.zip`) |
-| Vaciar | **Clear** (pide un segundo clic para evitar borrados accidentales) |
+| `ZipDrop-Setup-x.y.z.exe` | Installer (per-user, no admin rights, optional *Send to* and autostart) |
+| `ZipDrop-x.y.z-win-x64-portable.zip` | Single portable `.exe`, nothing else needed |
+| `ZipDrop-x.y.z-win-x64-framework-dependent.zip` | Tiny build, needs the [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) |
 
-La cesta guarda **referencias** a las rutas originales: nada se copia hasta que creas el ZIP.
-Si un archivo se mueve o se borra entretanto, la cesta lo marca como *missing* y el ZIP se crea sin él
-(indicándolo).
+Windows 10 (1809+) or Windows 11, x64.
 
-Menú de la bandeja: *Open ZipDrop · New basket · Settings · Exit*. Cerrar la cesta (×, Esc) no cierra la app.
+> The builds are not code-signed yet, so SmartScreen may warn the first time
+> (*More info → Run anyway*). Prefer building from source? See below.
 
-## Requisitos
+## How it works
 
-- Windows 10 1809+ / Windows 11, x64.
-- Para ejecutar la build *framework-dependent*: [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0).
-  La build *self-contained* no necesita nada.
-- Para desarrollar: .NET 9 SDK (ver [D-001](docs/DECISIONS.md) sobre .NET 10).
+| Do this | To |
+|---|---|
+| Drag files, **shake** the mouse | Open the basket while dragging (from Explorer, desktop, file dialogs) |
+| `Ctrl+Shift+Z` or click the tray icon | Show / hide the basket |
+| Drop on the basket | Add files and folders |
+| **Items** / **N missing** | See what's inside and what disappeared |
+| **Create ZIP** | Pick a name and folder (`Archive.zip` suggested), done |
+| **Clear** (click twice) | Empty the basket — your files are never touched |
 
-## Desarrollo
+Tray menu: *Open ZipDrop · New basket · Settings · Exit*. Closing the basket keeps ZipDrop running.
+
+**Shake not firing from some app?** By default only File Explorer/desktop drags count (that's what
+keeps false positives away). Use the shortcut or the tray icon from anywhere else.
+
+## Build from source
+
+Requires the .NET 9 SDK on Windows.
 
 ```powershell
-dotnet build                                   # compila todo
-dotnet test                                    # tests del núcleo (cesta, ZIP, shake…)
-dotnet run --project src/ZipDrop               # ejecuta la app
-./build.ps1                                    # tests + publish Release en artifacts/publish (+ instalador si hay Inno Setup)
-./build.ps1 -SelfContained                     # exe único con el runtime embebido
-powershell -File tools/make-icon.ps1           # regenera Assets/ZipDrop.ico
+git clone https://github.com/xGaliss/ZipDrop
+cd ZipDrop
+dotnet test                         # core tests: basket, ZIP planning/writing, shake detector
+dotnet run --project src/ZipDrop    # run it
+./build.ps1                         # tests + Release publish to artifacts/publish (+ installer if Inno Setup 6 is installed)
+./build.ps1 -SelfContained          # single portable exe
 ```
 
-Variables de entorno útiles en desarrollo (desactivadas por defecto):
+Project layout: `src/ZipDrop.Core` (pure, tested logic) · `src/ZipDrop` (WPF UI + Win32 integration) ·
+`tests/` · `installer/` · `tools/`.
 
-| Variable | Efecto |
-|---|---|
-| `ZIPDROP_TRACE=1` | Escribe eventos (drag/drop, shake, hook, ajustes) en `%LOCALAPPDATA%\ZipDrop\trace.log` |
-| `ZIPDROP_SHAKE_ANY_SOURCE=1` | Permite el shake desde cualquier aplicación, no solo Explorer/escritorio |
+Developer documentation (in Spanish): [architecture](docs/ARCHITECTURE.md) ·
+[design decisions](docs/DECISIONS.md) · [roadmap](docs/ROADMAP.md) · [known issues](docs/KNOWN_ISSUES.md).
 
-Los parámetros del gesto (distancia, nº de cambios de dirección, velocidad, ventana temporal, cooldown…)
-están centralizados en [`ShakeOptions`](src/ZipDrop.Core/Gestures/ShakeOptions.cs).
+## Roadmap
 
-## Estructura
+Multiple baskets · open an existing ZIP as a basket · password-protected ZIP · 7z · compression levels ·
+drop actions (to folder, upload, share, script). See [ROADMAP](docs/ROADMAP.md).
 
-```
-src/ZipDrop.Core/        Lógica pura, sin WPF (testeable): cesta, plan/creación de ZIP, detector de shake, ajustes
-src/ZipDrop/             App WPF: overlay, ajustes, bandeja, hotkey, hook de ratón, interop Win32
-tests/ZipDrop.Core.Tests xUnit
-installer/               Script de Inno Setup (instalación por usuario, sin admin)
-tools/                   Utilidades (generador de icono)
-docs/                    Documentación viva — léela antes de cambiar nada
-```
+## Contributing
 
-## Documentación
+Issues and PRs welcome — see [CONTRIBUTING](CONTRIBUTING.md). ZipDrop is deliberately small: if a
+feature doesn't make *collect → zip* faster, it probably belongs elsewhere.
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — módulos, hilos, flujo de datos
-- [docs/DECISIONS.md](docs/DECISIONS.md) — decisiones técnicas y su motivo
-- [docs/ROADMAP.md](docs/ROADMAP.md) — fases, estado y futuro
-- [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) — limitaciones conocidas (drag & drop, hooks, shake, DPI…)
+## License
 
-## Privacidad
-
-Todo ocurre en tu equipo. Sin cuentas, sin login, sin nube, sin backend, sin telemetría, sin analytics.
-Los únicos archivos que escribe ZipDrop son tus ZIP, `%APPDATA%\ZipDrop\settings.json` y, si algo falla,
-`%LOCALAPPDATA%\ZipDrop\error.log` (local, nunca se envía).
+[MIT](LICENSE) © Alejandro Galisteo

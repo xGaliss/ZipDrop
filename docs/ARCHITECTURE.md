@@ -17,6 +17,7 @@ Pequeña a propósito: dos proyectos de código, sin contenedor DI, sin framewor
 │     ├─ Services/StartupRegistration          HKCU\…\Run                                 │
 │     ├─ Services/ThemeService                 claro/oscuro según Windows                 │
 │     ├─ Services/ShellDragImage               IDropTargetHelper (imagen de arrastre)     │
+│     ├─ Services/ShellIcons                   iconos de tipo de archivo de Windows       │
 │     ├─ Services/MemoryTrimmer                compacta memoria al quedar inactiva        │
 │     └─ Interop/NativeMethods                 TODO el P/Invoke                           │
 │                                                                                         │

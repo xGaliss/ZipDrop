@@ -40,7 +40,9 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
   `ZIPDROP_SHAKE_ANY_SOURCE=1`.
 - El hook ve el *button-up* **antes** de que Explorer entregue el `Drop` al overlay; por eso la decisión
   de auto-ocultar se toma con un pequeño retraso.
-- Calibrado con trayectorias sintéticas y un drag simulado; falta calibración con usuarios reales.
+- Verificado con el Explorador real de Windows 11 (drags desde vista de iconos y de detalles, varias
+  carpetas) con movimiento generado por `mouse_event`. Falta calibración con usuarios reales y
+  ratones/touchpads distintos.
 
 ## DPI
 
@@ -67,6 +69,18 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
   ZipDrop está en marcha, `RegisterHotKey` se queda esa combinación en todo el sistema. Se mantuvo
   porque lo pide el brief; considerar cambiar el valor por defecto (p. ej. `Ctrl+Alt+Z` o `Win+Shift+Z`).
 - Si otra app ya registró la combinación, ZipDrop avisa y sigue sin hotkey hasta que se cambie en Ajustes.
+
+## Iconos
+
+- Los iconos de la cesta son los de las asociaciones de archivo del usuario: si otra app se ha apropiado
+  de una extensión (p. ej. `.docx`), la cesta muestra su icono, igual que el Explorador.
+- Ejecutables, accesos directos e `.ico` muestran el icono genérico de su tipo, no el propio (no se lee
+  el archivo, D-019).
+
+## Distribución
+
+- Los binarios no están firmados: SmartScreen puede avisar en la primera ejecución (*Más información →
+  Ejecutar de todas formas*). Firmar está en el roadmap.
 
 ## Permisos / sistema
 

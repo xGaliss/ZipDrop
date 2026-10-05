@@ -20,48 +20,68 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
         <ui:SizeConverter x:Key="SizeText" />
+        <ui:ItemIconConverter x:Key="ItemIcon" />
+
+        <!-- Fanned icon in the preview stack -->
+        <Style x:Key="StackIcon" TargetType="Image">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.9" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.35" Color="{DynamicResource ShadowColor}" />
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <DataTemplate x:Key="ItemTemplate" DataType="{x:Type core:BasketItem}">
-            <Grid x:Name="Row" Height="30" Background="Transparent" ToolTip="{Binding FullPath}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="22" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="26" />
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="Glyph" Style="{StaticResource IconText}" FontSize="13"
-                           Foreground="{DynamicResource SecondaryTextBrush}" Text="{StaticResource Glyph.File}" />
-                <TextBlock x:Name="Name" Grid.Column="1" Text="{Binding DisplayName}" FontSize="12.5"
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="6,0,8,0" />
-                <TextBlock x:Name="Size" Grid.Column="2" FontSize="11.5" VerticalAlignment="Center"
-                           Foreground="{DynamicResource TertiaryTextBrush}"
-                           Text="{Binding SizeBytes, Converter={StaticResource SizeText}}" />
-                <Button x:Name="RemoveBtn" Grid.Column="3" Style="{StaticResource IconButton}" Width="22" Height="22"
-                        Content="{StaticResource Glyph.Close}" FontSize="8" Visibility="Hidden" ToolTip="Remove from basket"
-                        Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                        CommandParameter="{Binding}" />
-            </Grid>
+            <Border x:Name="Row" Height="32" CornerRadius="6" Background="Transparent" Padding="4,0,0,0" ToolTip="{Binding FullPath}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="22" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="26" />
+                    </Grid.ColumnDefinitions>
+                    <Image x:Name="Icon" Width="18" Height="18" RenderOptions.BitmapScalingMode="HighQuality"
+                           Source="{Binding Converter={StaticResource ItemIcon}, ConverterParameter=Large}" />
+                    <TextBlock x:Name="Warn" Style="{StaticResource IconText}" FontSize="13" Visibility="Collapsed"
+                               Foreground="{DynamicResource WarningBrush}" Text="{StaticResource Glyph.Warning}" />
+                    <TextBlock x:Name="Name" Grid.Column="1" Text="{Binding DisplayName}" FontSize="12.5"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="8,0,8,0" />
+                    <TextBlock x:Name="Size" Grid.Column="2" FontSize="11.5" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TertiaryTextBrush}"
+                               Text="{Binding SizeBytes, Converter={StaticResource SizeText}}" />
+                    <Button x:Name="RemoveBtn" Grid.Column="3" Style="{StaticResource IconButton}" Width="22" Height="22"
+                            Content="{StaticResource Glyph.Close}" FontSize="8" Visibility="Hidden" ToolTip="Remove from basket"
+                            AutomationProperties.Name="Remove"
+                            Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}" />
+                </Grid>
+            </Border>
             <DataTemplate.Triggers>
-                <DataTrigger Binding="{Binding Kind}" Value="Folder">
-                    <Setter TargetName="Glyph" Property="Text" Value="{StaticResource Glyph.Folder}" />
-                </DataTrigger>
                 <DataTrigger Binding="{Binding IsMissing}" Value="True">
-                    <Setter TargetName="Glyph" Property="Text" Value="{StaticResource Glyph.Warning}" />
-                    <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                    <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Warn" Property="Visibility" Value="Visible" />
                     <Setter TargetName="Name" Property="Foreground" Value="{DynamicResource WarningBrush}" />
                     <Setter TargetName="Size" Property="Text" Value="missing" />
                     <Setter TargetName="Size" Property="Foreground" Value="{DynamicResource WarningBrush}" />
                 </DataTrigger>
                 <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
                     <Setter TargetName="RemoveBtn" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Row" Property="Background" Value="{DynamicResource SurfaceBrush}" />
                 </Trigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
         <Storyboard x:Key="DropIn">
             <DoubleAnimation Storyboard.TargetName="DropLayer" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-            <DoubleAnimation Storyboard.TargetName="DropGlyphShift" Storyboard.TargetProperty="Y" From="-6" To="0" Duration="0:0:0.25">
-                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+        </Storyboard>
+        <Storyboard x:Key="DropBob">
+            <DoubleAnimation Storyboard.TargetName="DropGlyphShift" Storyboard.TargetProperty="Y" From="-4" To="4"
+                             Duration="0:0:0.55" AutoReverse="True" RepeatBehavior="Forever">
+                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Key="DropOut">
@@ -69,19 +89,19 @@
         </Storyboard>
     </Window.Resources>
 
-    <Grid x:Name="Root" Margin="18" Width="252" RenderTransformOrigin="0.5,0.5">
+    <Grid x:Name="Root" Margin="18" Width="264" RenderTransformOrigin="0.5,0.5">
         <Grid.RenderTransform>
             <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1" />
         </Grid.RenderTransform>
 
         <!-- Shadow lives on a separate element so text keeps ClearType. -->
-        <Border CornerRadius="14" Background="{DynamicResource CardBrush}">
+        <Border CornerRadius="16" Background="{DynamicResource CardBrush}">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="26" ShadowDepth="6" Direction="270" Opacity="0.32" Color="{DynamicResource ShadowColor}" />
+                <DropShadowEffect BlurRadius="28" ShadowDepth="8" Direction="270" Opacity="0.34" Color="{DynamicResource ShadowColor}" />
             </Border.Effect>
         </Border>
 
-        <Border x:Name="Card" CornerRadius="14" Background="{DynamicResource CardBrush}"
+        <Border x:Name="Card" CornerRadius="16" Background="{DynamicResource CardBrush}"
                 BorderBrush="{DynamicResource CardStrokeBrush}" BorderThickness="1" Padding="14,8,10,14">
             <Grid>
                 <Grid.RowDefinitions>
@@ -91,12 +111,12 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- Header: drag handle -->
+                <!-- Header: logo + name, drag handle -->
                 <Grid Background="Transparent" MouseLeftButtonDown="Header_MouseLeftButtonDown" Cursor="SizeAll">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
-                        <TextBlock Text="ZIPDROP" Margin="8,0,0,0" FontSize="10.5" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" />
+                        <Image Source="pack://application:,,,/Assets/ZipDrop.ico" Width="16" Height="16"
+                               RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center" />
+                        <TextBlock Text="ZipDrop" Margin="7,0,0,0" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Style="{StaticResource IconButton}" Content="{StaticResource Glyph.Settings}" FontSize="11"
@@ -107,34 +127,49 @@
                 </Grid>
 
                 <!-- Body -->
-                <Grid Grid.Row="1" Margin="0,4,4,0" MinHeight="112">
+                <Grid Grid.Row="1" Margin="0,8,4,0" MinHeight="132">
 
-                    <!-- Empty -->
-                    <StackPanel VerticalAlignment="Center" Visibility="{Binding ShowEmpty, Converter={StaticResource BoolToVis}}">
-                        <Border Width="44" Height="44" CornerRadius="22" Background="{DynamicResource SurfaceBrush}"
-                                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1">
-                            <TextBlock Style="{StaticResource IconText}" FontSize="18" Text="{StaticResource Glyph.Download}"
-                                       Foreground="{DynamicResource SecondaryTextBrush}" />
-                        </Border>
-                        <TextBlock Text="Drop files here" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="14" FontWeight="SemiBold" />
-                        <TextBlock Text="Files stay where they are until you zip" HorizontalAlignment="Center" Margin="0,3,0,0"
-                                   FontSize="11.5" Foreground="{DynamicResource TertiaryTextBrush}" />
-                    </StackPanel>
+                    <!-- Empty: dashed drop zone -->
+                    <Grid Visibility="{Binding ShowEmpty, Converter={StaticResource BoolToVis}}">
+                        <Rectangle RadiusX="12" RadiusY="12" Stroke="{DynamicResource SecondaryTextBrush}" Opacity="0.45"
+                                   StrokeThickness="1.4" StrokeDashArray="4 3" Fill="{DynamicResource SurfaceBrush}" />
+                        <StackPanel VerticalAlignment="Center" Margin="0,14">
+                            <Border Width="42" Height="42" CornerRadius="21" Background="{DynamicResource AccentSoftBrush}">
+                                <TextBlock Style="{StaticResource IconText}" FontSize="17" Text="{StaticResource Glyph.Download}"
+                                           Foreground="{DynamicResource AccentBrush}" />
+                            </Border>
+                            <TextBlock Text="Drop files here" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Text="Nothing is copied until you zip" HorizontalAlignment="Center" Margin="0,3,0,0"
+                                       FontSize="11.5" Foreground="{DynamicResource TertiaryTextBrush}" />
+                        </StackPanel>
+                    </Grid>
 
                     <!-- Summary + list -->
                     <StackPanel VerticalAlignment="Center" Visibility="{Binding ShowSummary, Converter={StaticResource BoolToVis}}">
-                        <TextBlock x:Name="CountText" Text="{Binding CountText}" HorizontalAlignment="Center" FontSize="26"
+                        <!-- Fanned stack of the latest items' icons -->
+                        <Grid Height="54" Width="96" HorizontalAlignment="Center">
+                            <Image Style="{StaticResource StackIcon}" Source="{Binding PreviewIcon1}" Margin="0,4,30,0">
+                                <Image.RenderTransform><RotateTransform Angle="-14" /></Image.RenderTransform>
+                            </Image>
+                            <Image Style="{StaticResource StackIcon}" Source="{Binding PreviewIcon2}" Margin="30,4,0,0">
+                                <Image.RenderTransform><RotateTransform Angle="14" /></Image.RenderTransform>
+                            </Image>
+                            <Image Style="{StaticResource StackIcon}" Source="{Binding PreviewIcon3}" Margin="0,0,0,4" />
+                        </Grid>
+
+                        <TextBlock x:Name="CountText" Text="{Binding CountText}" HorizontalAlignment="Center" Margin="0,6,0,0" FontSize="24"
                                    FontFamily="{StaticResource DisplayFont}" FontWeight="SemiBold" RenderTransformOrigin="0.5,0.5">
                             <TextBlock.RenderTransform>
                                 <ScaleTransform x:Name="CountScale" />
                             </TextBlock.RenderTransform>
                         </TextBlock>
-                        <TextBlock Text="{Binding SizeText}" HorizontalAlignment="Center" FontSize="13"
+                        <TextBlock Text="{Binding SizeText}" HorizontalAlignment="Center" FontSize="12.5"
                                    Foreground="{DynamicResource SecondaryTextBrush}" />
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
                             <Button Style="{StaticResource ButtonBase}" Padding="8,3" Margin="0,0,4,0" Command="{Binding ToggleListCommand}"
                                     Background="{DynamicResource WarningSoftBrush}" ToolTip="Show which items are missing"
+                                    AutomationProperties.Name="Show missing"
                                     Visibility="{Binding HasMissing, Converter={StaticResource BoolToVis}}">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource IconText}" Text="{StaticResource Glyph.Warning}" FontSize="11"
@@ -143,7 +178,8 @@
                                                Foreground="{DynamicResource WarningBrush}" />
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SubtleButton}" Command="{Binding ToggleListCommand}" Padding="8,3" AutomationProperties.Name="Show items">
+                            <Button Style="{StaticResource SubtleButton}" Command="{Binding ToggleListCommand}" Padding="8,3"
+                                    AutomationProperties.Name="Show items">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Items" FontSize="11.5" />
                                     <TextBlock x:Name="Chevron" Style="{StaticResource IconText}" FontSize="9" Margin="5,1,0,0"
@@ -154,10 +190,10 @@
 
                         <StackPanel Margin="0,8,0,0" Visibility="{Binding ShowList, Converter={StaticResource BoolToVis}}">
                             <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,0,0,4" />
-                            <ScrollViewer MaxHeight="186" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ScrollViewer MaxHeight="196" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                 <ItemsControl ItemsSource="{Binding Basket.Items}" ItemTemplate="{StaticResource ItemTemplate}" />
                             </ScrollViewer>
-                            <Button Style="{StaticResource SubtleButton}" HorizontalAlignment="Left" Margin="-6,4,0,0"
+                            <Button Style="{StaticResource SubtleButton}" HorizontalAlignment="Left" Margin="-4,4,0,0"
                                     Content="Remove missing items" Foreground="{DynamicResource WarningBrush}"
                                     Command="{Binding RemoveMissingCommand}"
                                     Visibility="{Binding HasMissing, Converter={StaticResource BoolToVis}}" />
@@ -166,30 +202,36 @@
 
                     <!-- Zipping -->
                     <StackPanel VerticalAlignment="Center" Visibility="{Binding IsZipping, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Creating ZIP…" HorizontalAlignment="Center" FontSize="14" FontWeight="SemiBold" />
-                        <ProgressBar Margin="6,14,6,0" Minimum="0" Maximum="1" Value="{Binding Progress, Mode=OneWay}" />
+                        <Border Width="42" Height="42" CornerRadius="21" Background="{DynamicResource AccentSoftBrush}">
+                            <TextBlock Style="{StaticResource IconText}" FontSize="17" Text="{StaticResource Glyph.Package}"
+                                       Foreground="{DynamicResource AccentBrush}" />
+                        </Border>
+                        <TextBlock Text="Creating ZIP…" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="14" FontWeight="SemiBold" />
+                        <ProgressBar Margin="8,12,8,0" Minimum="0" Maximum="1" Value="{Binding Progress, Mode=OneWay}" />
                         <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" Margin="0,8,0,0" FontSize="11.5"
                                    Foreground="{DynamicResource SecondaryTextBrush}" />
                         <Button Style="{StaticResource SubtleButton}" Content="Cancel" HorizontalAlignment="Center"
-                                Margin="0,8,0,0" Command="{Binding CancelCommand}" />
+                                Margin="0,6,0,0" Command="{Binding CancelCommand}" AutomationProperties.Name="Cancel" />
                     </StackPanel>
 
                     <!-- Done -->
                     <StackPanel VerticalAlignment="Center" Visibility="{Binding IsDone, Converter={StaticResource BoolToVis}}">
-                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource SuccessBrush}">
-                            <TextBlock Style="{StaticResource IconText}" FontSize="16" Text="{StaticResource Glyph.Check}" Foreground="White" />
+                        <Border Width="42" Height="42" CornerRadius="21" Background="{DynamicResource SuccessBrush}">
+                            <TextBlock Style="{StaticResource IconText}" FontSize="17" Text="{StaticResource Glyph.Check}" Foreground="White" />
                         </Border>
                         <TextBlock Text="{Binding ResultTitle}" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="14" FontWeight="SemiBold" />
                         <TextBlock Text="{Binding ResultDetail}" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,3,0,0"
                                    FontSize="11.5" TextWrapping="Wrap" Foreground="{DynamicResource SecondaryTextBrush}" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0">
-                            <Button Style="{StaticResource PrimaryButton}" Command="{Binding OpenFolderCommand}" Padding="12,7" AutomationProperties.Name="Open folder">
+                            <Button Style="{StaticResource PrimaryButton}" Command="{Binding OpenFolderCommand}" Padding="12,7"
+                                    AutomationProperties.Name="Open folder">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Style="{StaticResource IconText}" Text="{StaticResource Glyph.FolderOpen}" />
                                     <TextBlock Text="Open folder" Margin="7,0,0,0" />
                                 </StackPanel>
                             </Button>
-                            <Button Style="{StaticResource SubtleButton}" Content="Done" Margin="6,0,0,0" Command="{Binding DismissCommand}" />
+                            <Button Style="{StaticResource SubtleButton}" Content="Done" Margin="6,0,0,0" Command="{Binding DismissCommand}"
+                                    AutomationProperties.Name="Done" />
                         </StackPanel>
                     </StackPanel>
 
@@ -207,15 +249,18 @@
                 </Grid>
 
                 <!-- Toast -->
-                <TextBlock Grid.Row="2" Text="{Binding Toast}" HorizontalAlignment="Center" Margin="0,6,4,0" FontSize="11.5"
-                           Foreground="{DynamicResource AccentBrush}"
-                           Visibility="{Binding HasToast, Converter={StaticResource BoolToVis}}" />
+                <Border Grid.Row="2" HorizontalAlignment="Center" Margin="0,8,4,0" Padding="10,3" CornerRadius="10"
+                        Background="{DynamicResource AccentSoftBrush}"
+                        Visibility="{Binding HasToast, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="{Binding Toast}" FontSize="11.5" Foreground="{DynamicResource AccentBrush}" />
+                </Border>
 
                 <!-- Footer -->
                 <DockPanel Grid.Row="3" Margin="0,12,4,0" LastChildFill="True"
                            Visibility="{Binding ShowSummary, Converter={StaticResource BoolToVis}}">
                     <Button DockPanel.Dock="Left" Style="{StaticResource SubtleButton}" Content="{Binding ClearText}"
-                            Command="{Binding ClearCommand}" Margin="0,0,8,0" AutomationProperties.Name="Clear" ToolTip="Empty the basket (files are not touched)" />
+                            Command="{Binding ClearCommand}" Margin="0,0,8,0" AutomationProperties.Name="Clear"
+                            ToolTip="Empty the basket (files are not touched)" />
                     <Button Style="{StaticResource PrimaryButton}" Command="{Binding CreateZipCommand}" AutomationProperties.Name="Create ZIP">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource IconText}" Text="{StaticResource Glyph.Package}" FontSize="13" />
@@ -227,21 +272,25 @@
         </Border>
 
         <!-- Drag-over layer -->
-        <Border x:Name="DropLayer" CornerRadius="14" Background="{DynamicResource CardBrush}" Opacity="0" IsHitTestVisible="False">
-            <Border CornerRadius="14" Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2">
+        <Border x:Name="DropLayer" CornerRadius="16" Background="{DynamicResource CardBrush}" Opacity="0" IsHitTestVisible="False">
+            <Grid Margin="8">
+                <Rectangle RadiusX="12" RadiusY="12" Fill="{DynamicResource AccentSoftBrush}" Stroke="{DynamicResource AccentBrush}"
+                           StrokeThickness="2" StrokeDashArray="5 3" />
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Style="{StaticResource IconText}" FontSize="30" Text="{StaticResource Glyph.Download}"
-                               Foreground="{DynamicResource AccentBrush}">
-                        <TextBlock.RenderTransform>
-                            <TranslateTransform x:Name="DropGlyphShift" />
-                        </TextBlock.RenderTransform>
-                    </TextBlock>
-                    <TextBlock Text="DROP" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="15" FontWeight="Bold"
-                               Foreground="{DynamicResource AccentBrush}" />
+                    <Border Width="52" Height="52" CornerRadius="26" Background="{DynamicResource AccentBrush}">
+                        <TextBlock Style="{StaticResource IconText}" FontSize="22" Text="{StaticResource Glyph.Download}"
+                                   Foreground="{DynamicResource AccentTextBrush}">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform x:Name="DropGlyphShift" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Border>
+                    <TextBlock Text="Drop to add" HorizontalAlignment="Center" Margin="0,12,0,0" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextBrush}" />
                     <TextBlock x:Name="DropHint" Text="Add to ZIP" HorizontalAlignment="Center" Margin="0,2,0,0" FontSize="12"
                                Foreground="{DynamicResource SecondaryTextBrush}" />
                 </StackPanel>
-            </Border>
+            </Grid>
         </Border>
     </Grid>
 </Window>

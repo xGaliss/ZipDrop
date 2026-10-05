@@ -10,4 +10,7 @@ documentos afectados (decisión nueva → `DECISIONS.md`; limitación → `KNOWN
 - Parámetros del shake: solo en `ShakeOptions`. Cambios en el algoritmo → añadir trayectorias en `ShakeDetectorTests`.
 - Comentarios de código y textos de UI en inglés; documentación en español.
 - Comprobar: `dotnet build` sin warnings, `dotnet test` en verde. E2E opcional: `tools/e2e`.
+- Imágenes del README/promo: `tools/media` (capture, social, demo). Nunca grabar el panel de navegación
+  del Explorador ni diálogos que muestren el nombre/carpetas del usuario.
+- README en inglés (público); documentación de `docs/` en español.
 - Sin telemetría, red ni servicios externos. Nunca.

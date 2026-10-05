@@ -237,6 +237,7 @@ internal partial class OverlayWindow : Window
         DropHint.Text = _vm.Basket.IsEmpty ? "Add to ZIP" : $"Add to {_vm.CountText}";
         _vm.IsDragOver = true;
         ((Storyboard)Resources["DropIn"]).Begin(this, true);
+        ((Storyboard)Resources["DropBob"]).Begin(this, true);
     }
 
     private void OnDragOver(object sender, DragEventArgs e)
@@ -272,6 +273,7 @@ internal partial class OverlayWindow : Window
     {
         if (!_vm.IsDragOver) return;
         _vm.IsDragOver = false;
+        ((Storyboard)Resources["DropBob"]).Stop(this);
         ((Storyboard)Resources["DropOut"]).Begin(this, true);
     }
 
