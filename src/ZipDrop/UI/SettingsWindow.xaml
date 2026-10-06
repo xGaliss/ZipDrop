@@ -1,7 +1,8 @@
 <Window x:Class="ZipDrop.UI.SettingsWindow" x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ZipDrop Settings"
+        xmlns:zd="clr-namespace:ZipDrop"
+        Title="{x:Static zd:Strings.SettingsWindowTitle}"
         Width="440"
         SizeToContent="Height"
         ResizeMode="NoResize"
@@ -34,7 +35,7 @@
     </Window.Resources>
 
     <StackPanel Margin="20,18,20,20">
-        <TextBlock Text="Settings" FontSize="20" FontWeight="SemiBold" FontFamily="{StaticResource DisplayFont}" Margin="0,0,0,14" />
+        <TextBlock Text="{x:Static zd:Strings.SettingsHeader}" FontSize="20" FontWeight="SemiBold" FontFamily="{StaticResource DisplayFont}" Margin="0,0,0,14" />
 
         <!-- Shortcut -->
         <Border Style="{StaticResource Row}">
@@ -44,14 +45,14 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Label}" Text="Global shortcut" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Shows or hides the basket from anywhere." />
+                    <TextBlock Style="{StaticResource Label}" Text="{x:Static zd:Strings.GlobalShortcut}" />
+                    <TextBlock Style="{StaticResource Hint}" Text="{x:Static zd:Strings.GlobalShortcutHint}" />
                     <TextBlock x:Name="ShortcutError" Style="{StaticResource Hint}" Foreground="{DynamicResource DangerBrush}" Visibility="Collapsed" />
                 </StackPanel>
                 <Button x:Name="ShortcutButton" Grid.Column="1" Style="{StaticResource ButtonBase}" MinWidth="120" Padding="12,6"
                         Background="{DynamicResource HoverBrush}" Click="ShortcutButton_Click"
                         PreviewKeyDown="ShortcutButton_PreviewKeyDown" LostKeyboardFocus="ShortcutButton_LostFocus"
-                        ToolTip="Click, then press the new key combination (Esc cancels)">
+                        ToolTip="{x:Static zd:Strings.ShortcutButtonTip}" AutomationProperties.AutomationId="Shortcut">
                     <TextBlock x:Name="ShortcutText" FontFamily="Cascadia Mono, Consolas" FontSize="12" Text="Ctrl+Shift+Z" />
                 </Button>
             </Grid>
@@ -66,8 +67,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel>
-                        <TextBlock Style="{StaticResource Label}" Text="Shake to open" />
-                        <TextBlock Style="{StaticResource Hint}" Text="While dragging files from Explorer or the desktop, shake the mouse left-right." />
+                        <TextBlock Style="{StaticResource Label}" Text="{x:Static zd:Strings.ShakeToOpen}" />
+                        <TextBlock Style="{StaticResource Hint}" Text="{x:Static zd:Strings.ShakeHint}" />
                     </StackPanel>
                     <CheckBox x:Name="ShakeEnabled" Grid.Column="1" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"
                               Margin="12,0,0,0" Checked="OnChanged" Unchecked="OnChanged" />
@@ -77,13 +78,13 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Style="{StaticResource Label}" Text="Shake sensitivity" Foreground="{DynamicResource SecondaryTextBrush}" />
+                    <TextBlock Style="{StaticResource Label}" Text="{x:Static zd:Strings.ShakeSensitivity}" Foreground="{DynamicResource SecondaryTextBrush}" />
                     <Border Grid.Column="1" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="2"
                             IsEnabled="{Binding IsChecked, ElementName=ShakeEnabled}">
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton x:Name="SensLow" Style="{StaticResource SegmentButton}" Content="Low" GroupName="Sens" Checked="OnChanged" />
-                            <RadioButton x:Name="SensMedium" Style="{StaticResource SegmentButton}" Content="Medium" GroupName="Sens" Checked="OnChanged" />
-                            <RadioButton x:Name="SensHigh" Style="{StaticResource SegmentButton}" Content="High" GroupName="Sens" Checked="OnChanged" />
+                            <RadioButton x:Name="SensLow" Style="{StaticResource SegmentButton}" Content="{x:Static zd:Strings.Low}" GroupName="Sens" Checked="OnChanged" />
+                            <RadioButton x:Name="SensMedium" Style="{StaticResource SegmentButton}" Content="{x:Static zd:Strings.Medium}" GroupName="Sens" Checked="OnChanged" />
+                            <RadioButton x:Name="SensHigh" Style="{StaticResource SegmentButton}" Content="{x:Static zd:Strings.High}" GroupName="Sens" Checked="OnChanged" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -99,8 +100,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Label}" Text="Clear basket after creating ZIP" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Kept if some files could not be read." />
+                    <TextBlock Style="{StaticResource Label}" Text="{x:Static zd:Strings.ClearAfterZip}" />
+                    <TextBlock Style="{StaticResource Hint}" Text="{x:Static zd:Strings.ClearAfterZipHint}" />
                 </StackPanel>
                 <CheckBox x:Name="ClearAfterZip" Grid.Column="1" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"
                           Margin="12,0,0,0" Checked="OnChanged" Unchecked="OnChanged" />
@@ -115,8 +116,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Label}" Text="Launch at startup" />
-                    <TextBlock Style="{StaticResource Hint}" Text="Starts quietly in the system tray." />
+                    <TextBlock Style="{StaticResource Label}" Text="{x:Static zd:Strings.LaunchAtStartup}" />
+                    <TextBlock Style="{StaticResource Hint}" Text="{x:Static zd:Strings.LaunchAtStartupHint}" />
                 </StackPanel>
                 <CheckBox x:Name="LaunchAtStartup" Grid.Column="1" Style="{StaticResource ToggleSwitch}" VerticalAlignment="Center"
                           Margin="12,0,0,0" Checked="OnChanged" Unchecked="OnChanged" />
@@ -124,7 +125,7 @@
         </Border>
 
         <TextBlock Style="{StaticResource Hint}" Margin="2,10,0,0"
-                   Text="ZipDrop works entirely on this PC. No accounts, no cloud, no telemetry." />
+                   Text="{x:Static zd:Strings.PrivacyNote}" />
 
         <!-- About -->
         <Border Height="1" Background="{DynamicResource DividerBrush}" Margin="0,14,0,10" />
@@ -132,7 +133,7 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock FontSize="12">
                     <Hyperlink NavigateUri="https://github.com/xGaliss/ZipDrop/releases" RequestNavigate="Link_RequestNavigate"
-                               Foreground="{DynamicResource AccentBrush}" TextDecorations="{x:Null}">Releases</Hyperlink>
+                               Foreground="{DynamicResource AccentBrush}" TextDecorations="{x:Null}"><Run Text="{x:Static zd:Strings.Releases}" /></Hyperlink>
                 </TextBlock>
                 <TextBlock Text="·" Margin="8,0" FontSize="12" Foreground="{DynamicResource TertiaryTextBrush}" />
                 <TextBlock FontSize="12">

@@ -11,6 +11,10 @@ public readonly record struct ZipProgress(long BytesDone, long BytesTotal, int F
 
 public sealed record ZipSkippedFile(string SourcePath, string Reason);
 
+/// <summary>Every source is missing, so no archive was written.</summary>
+public sealed class NothingToZipException()
+    : InvalidOperationException("There is nothing to zip: every item in the basket is missing.");
+
 public sealed record ZipResult(
     string DestinationPath,
     int FilesWritten,
@@ -50,7 +54,7 @@ public static class ZipBuilder
     public static ZipResult Build(ZipPlan plan, string destinationPath, IProgress<ZipProgress>? progress, CancellationToken ct)
     {
         if (plan.Entries.Count == 0)
-            throw new InvalidOperationException("There is nothing to zip: every item in the basket is missing.");
+            throw new NothingToZipException();
 
         var destination = Path.GetFullPath(destinationPath);
         var directory = Path.GetDirectoryName(destination) ?? throw new ArgumentException("Invalid destination", nameof(destinationPath));

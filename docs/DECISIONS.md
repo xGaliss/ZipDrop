@@ -127,8 +127,8 @@ ni para observar sus datos. Opciones evaluadas:
 
 Sin hook de teclado (más seguro, sin latencia). `MOD_NOREPEAT`. Si la combinación está ocupada se avisa
 (notificación de bandeja / error en ajustes) y se mantiene la anterior. Durante la captura de una nueva
-combinación en Ajustes se desregistra temporalmente la actual. Por defecto `Ctrl+Shift+Z` (pedido en el
-brief) — ver KNOWN_ISSUES: coincide con *Rehacer* en muchas apps.
+combinación en Ajustes se desregistra temporalmente la actual. Hasta v0.1.1 el valor por defecto era
+`Ctrl+Shift+Z` (pedido en el brief); desde v0.2.0 ver D-023.
 
 ## D-012 · Instancia única + named pipe + rutas por línea de comandos
 
@@ -190,3 +190,34 @@ CI compila con `-warnaserror` y ejecuta los tests en cada push/PR.
 Material gráfico reproducible en `tools/media` (capturas con fondo limpio, imagen social, GIF de demo
 grabado con el Explorador real). La demo deja **fuera del encuadre** el panel de navegación del
 Explorador y no graba el diálogo de guardar, porque muestran carpetas y nombre del usuario.
+(Hasta v0.1.1 el GIF sí incluía ~1 s de ese diálogo por un fallo del script; ver KNOWN_ISSUES → Pruebas.)
+
+## D-021 · Interfaz en inglés y español
+
+Idioma según el idioma de pantalla de Windows (`CurrentUICulture`); `ZIPDROP_LANG=en|es` lo fuerza.
+Todos los textos viven en `src/ZipDrop/Strings.cs` (una propiedad por texto, `T(en, es)`), usados desde
+XAML con `{x:Static zd:Strings.X}`. Para dos idiomas es más simple y legible que `.resx` + ensamblados
+satélite; si llega un tercer idioma, migrar a `.resx`. Los tamaños usan el separador decimal del idioma
+(`SizeFormatter.Format(bytes, culture)`). Los controles tienen `AutomationId` fijos en inglés para que los
+scripts de prueba no dependan del idioma; el `Name` accesible sí se traduce.
+
+## D-022 · Sacar el ZIP: arrastrar, copiar, pegar
+
+Casi siempre el ZIP se crea para enviarlo, así que el panel "ZIP created" muestra el propio archivo como
+un chip arrastrable. El arrastre usa un `DataObject` con `CF_HDROP` + `Preferred DropEffect = Copy`
+(`FileDataObject`), que aceptan Explorer, navegadores (Gmail, WhatsApp Web, formularios de subida),
+Teams y Outlook; el efecto permitido es solo `Copy`. Mientras se arrastra hacia fuera, la cesta ignora
+drops para no volver a meterse su propio ZIP. **Copy** pone el mismo objeto en el portapapeles.
+
+Entrada simétrica: `Ctrl+V` / `Shift+Insert` en la cesta añade los archivos copiados (o cortados) en el
+Explorador; nunca se mueven. Para que el teclado llegue, abrir la cesta con el atajo o la bandeja ahora
+la **activa** (petición explícita del usuario); invocarla con el shake sigue sin robar el foco (D-010).
+El diálogo de guardar no puede abrirse dos veces aunque se invoque el botón con uno ya abierto.
+
+## D-023 · Atajo por defecto: Ctrl+Alt+Z, comprobando el teclado
+
+`Ctrl+Shift+Z` es *Rehacer* en muchas apps. En una instalación nueva (sin `settings.json`) se usa el
+primero de `Ctrl+Alt+Z`, `Win+Shift+Z`, `Ctrl+Shift+Z` que (a) no escriba un carácter en la distribución
+de teclado actual — `Ctrl+Alt` equivale a `AltGr` (en polaco `AltGr+Z` = "ż") y registrar el atajo
+impediría escribirlo; se comprueba con `ToUnicodeEx` sin alterar el estado del teclado — y (b) no esté
+ocupado por otra app. Los usuarios existentes conservan su atajo.

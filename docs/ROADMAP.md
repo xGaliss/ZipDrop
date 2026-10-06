@@ -21,6 +21,14 @@ conflicto de nombres, *Create ZIP* con diálogo nativo, ajustes.
 - [ ] Subir `docs/media/social-preview.png` como *social preview* (Settings → General; no hay API).
 - [ ] Publicar en comunidades (borradores locales en `promo/`, fuera del repo).
 
+## v0.2.0
+
+- [x] Arrastrar el ZIP terminado fuera de la cesta (Gmail, WhatsApp Web, Teams, carpetas…) — D-022.
+- [x] Botón **Copy** del ZIP al portapapeles y `Ctrl+V` para añadir archivos copiados — D-022.
+- [x] Atajo por defecto `Ctrl+Alt+Z` en instalaciones nuevas, comprobando la distribución de teclado — D-023.
+- [x] Interfaz en español según el idioma de Windows — D-021.
+- [x] Versión y enlaces en Ajustes.
+
 ## Siguiente (pulido pendiente, pequeño)
 
 - [ ] Probar a mano con Explorer real en monitores con DPI mixto (125 % + 100 %) y ajustar `PlaceNear`.
@@ -28,7 +36,12 @@ conflicto de nombres, *Create ZIP* con diálogo nativo, ajustes.
 - [ ] Texto de drop personalizado en Explorer ("Add to ZipDrop") vía formato `DropDescription`.
 - [ ] Migrar a .NET 10 cuando el SDK esté disponible (cambiar `TargetFramework`).
 - [ ] Firmar el ejecutable/instalador (reduce avisos de SmartScreen y falsos positivos de antivirus por el hook).
-- [ ] Navegación por teclado completa en el overlay (Tab/Enter) y revisión de alto contraste.
+- [ ] Navegación por teclado completa en el overlay (Enter = Create ZIP, Supr = quitar) y revisión de alto contraste.
+- [ ] Miniatura de arrastre al sacar el ZIP (`IDragSourceHelper`).
+- [ ] Nombre sugerido más listo (`proyecto.zip` si es una sola carpeta; fecha en el resto).
+- [ ] Guía de primer arranque (3 s) con el gesto y el atajo.
+- [ ] Recordar la cesta entre reinicios.
+- [ ] Publicar en winget y Microsoft Store.
 - [ ] Tests de `HotkeyGesture` (hoy en el proyecto WPF; moverlo a un proyecto testeable si crece).
 
 ## Futuro — NO implementar todavía

@@ -83,7 +83,7 @@ public class ZipBuilderTests : IDisposable
     public async Task All_items_missing_fails_without_creating_file()
     {
         var dest = _tmp.PathOf("none.zip");
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        await Assert.ThrowsAsync<NothingToZipException>(() =>
             ZipBuilder.CreateAsync([new(_tmp.PathOf("x"), BasketItemKind.File)], dest));
         Assert.False(File.Exists(dest));
     }

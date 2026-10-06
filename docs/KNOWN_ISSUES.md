@@ -65,9 +65,9 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
 
 ## Hotkey
 
-- **`Ctrl+Shift+Z` es *Rehacer* en muchas apps** (Photoshop, Figma, VS Code, navegadores…). Mientras
-  ZipDrop está en marcha, `RegisterHotKey` se queda esa combinación en todo el sistema. Se mantuvo
-  porque lo pide el brief; considerar cambiar el valor por defecto (p. ej. `Ctrl+Alt+Z` o `Win+Shift+Z`).
+- Mientras ZipDrop está en marcha, `RegisterHotKey` se queda la combinación en todo el sistema. Desde
+  v0.2.0 el valor por defecto es `Ctrl+Alt+Z` (o `Win+Shift+Z` si en tu teclado `AltGr+Z` escribe algo,
+  D-023). Quien instaló v0.1.x conserva `Ctrl+Shift+Z`, que es *Rehacer* en muchas apps: cámbialo en Ajustes.
 - Si otra app ya registró la combinación, ZipDrop avisa y sigue sin hotkey hasta que se cambie en Ajustes.
 
 ## Iconos
@@ -81,6 +81,14 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
 
 - Los binarios no están firmados: SmartScreen puede avisar en la primera ejecución (*Más información →
   Ejecutar de todas formas*). Firmar está en el roadmap.
+
+## Sacar el ZIP / pegar
+
+- Al arrastrar el ZIP fuera de la cesta no hay miniatura de arrastre (solo el cursor); el destino recibe
+  el archivo igualmente. Verificado con el Explorador y con una página web en Edge que recibe el archivo.
+- `Ctrl+V` solo funciona cuando la cesta tiene el foco: al abrirla con el atajo o la bandeja, o tras
+  hacer clic en ella. Abierta con el shake no tiene foco (a propósito: estás arrastrando).
+- Algunas webs no aceptan soltar archivos (solo botón "Adjuntar"): ahí usa **Copy** y pega, u *Open folder*.
 
 ## Permisos / sistema
 
@@ -108,3 +116,9 @@ Mantener actualizado. Cada entrada: síntoma → causa → mitigación/estado.
   (con y sin shake) y UI Automation para pulsar *Create ZIP*. Mueven el ratón real.
 - Simular el botón pulsado requiere procesar la cola de mensajes del hilo origen (`DoEvents`) antes de
   `DoDragDrop`, o el drag termina al instante.
+- **Privacidad en grabaciones.** ffmpeg sigue capturando ~0,3 s tras pedirle parar y tarda ~1 s en
+  arrancar: `tools/media/demo.ps1` deja de grabar *antes* de abrir el diálogo de guardar y no vuelve a
+  grabar hasta comprobar que se cerró. El GIF publicado con v0.1.0/v0.1.1 contenía ~1 s del diálogo (ruta
+  con el nombre del usuario y carpetas estándar); se sustituyó en v0.2.0, pero sigue en el historial de git.
+- Los diálogos con propietario (p. ej. *Save ZIP*) no cuelgan de la raíz en UI Automation: buscarlos con
+  `EnumWindows` (`Find-SaveDialog` en `tools/media/Native.ps1`).

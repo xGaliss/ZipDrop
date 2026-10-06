@@ -13,32 +13,37 @@ basket, then create one ZIP — no temp folder, no copying, no WinRAR.
 
 </div>
 
-![ZipDrop demo: shake while dragging from File Explorer, drop files from three folders, create one ZIP](docs/media/demo.gif)
+![ZipDrop demo: shake while dragging from File Explorer, drop files from three folders, create one ZIP and drag it out](docs/media/demo.gif)
 
 ## Why
 
 You need to send a photo from *Pictures*, a contract from *Documents* and a whole project folder.
 Normally: make a temp folder, copy everything in, zip it, delete the temp folder.
 
-With ZipDrop: **drag → shake → drop**, keep working, **drop more**, **Create ZIP**. Done.
+With ZipDrop: **drag → shake → drop**, keep working, **drop more**, **Create ZIP**, then **drag the ZIP** into
+your email or chat. Done.
 
 ```
-FILES → SHAKE → DROP → CONTINUE WORKING → MORE FILES → DROP → CREATE ZIP
+FILES → SHAKE → DROP → CONTINUE WORKING → MORE FILES → DROP → CREATE ZIP → DRAG IT WHERE IT GOES
 ```
 
 ## Features
 
 - **Shake to summon.** While dragging files in File Explorer or on the desktop, shake the mouse
   left-right and the basket appears next to your cursor.
-- **Global shortcut.** `Ctrl+Shift+Z` (configurable) shows/hides the basket from anywhere.
+- **Global shortcut.** `Ctrl+Alt+Z` (configurable) shows/hides the basket from anywhere.
+- **Paste, too.** Copy files in Explorer (`Ctrl+C`), open the basket, press `Ctrl+V`.
 - **References, not copies.** Nothing is copied until you zip. Files that get moved or deleted
   meanwhile are flagged as *missing* — you see exactly which one.
 - **Safe ZIPs.** Same-named files from different folders become `report.pdf` and `report (2).pdf`;
   nothing is ever silently overwritten. Folders keep their structure, Unicode names and long paths work,
   already-compressed files (photos, videos, Office docs) are stored without wasting CPU.
+- **Drag the ZIP straight out.** When it's done, drag the ZIP from the basket into Gmail, WhatsApp Web,
+  Teams, an upload form or any folder — or hit **Copy** and paste it anywhere.
 - **Never touches your originals.** Drops are always *Copy*, never *Move*.
 - **Lives in the tray.** ~0.5 MB app, starts in ~0.3 s, idles at a few MB of RAM.
 - **Send To.** The installer can add *Send to → ZipDrop* to Explorer's context menu.
+- **English & Spanish.** Follows your Windows display language.
 - **100% local.** No account, no cloud, no telemetry, no network access at all.
 
 <p align="center">
@@ -67,10 +72,11 @@ Windows 10 (1809+) or Windows 11, x64.
 | Do this | To |
 |---|---|
 | Drag files, **shake** the mouse | Open the basket while dragging (from Explorer, desktop, file dialogs) |
-| `Ctrl+Shift+Z` or click the tray icon | Show / hide the basket |
-| Drop on the basket | Add files and folders |
+| `Ctrl+Alt+Z` or click the tray icon | Show / hide the basket |
+| Drop on the basket, or `Ctrl+V` | Add files and folders (copied in Explorer) |
 | **Items** / **N missing** | See what's inside and what disappeared |
 | **Create ZIP** | Pick a name and folder (`Archive.zip` suggested), done |
+| Drag the finished ZIP, or **Copy** | Send it: drop into an email, chat, upload form or folder |
 | **Clear** (click twice) | Empty the basket — your files are never touched |
 
 Tray menu: *Open ZipDrop · New basket · Settings · Exit*. Closing the basket keeps ZipDrop running.

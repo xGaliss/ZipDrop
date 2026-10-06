@@ -87,16 +87,23 @@ internal partial class OverlayWindow : Window
         if (!wasVisible) AnimateIn();
     }
 
-    public void ShowNearCursor()
+    /// <summary>
+    /// Shows next to the cursor. <paramref name="activate"/> = explicit user request (hotkey, tray):
+    /// take keyboard focus so Ctrl+V / Esc work. Never used for shake (the user is mid-drag).
+    /// </summary>
+    public void ShowNearCursor(bool activate = false)
     {
         GetCursorPos(out var p);
         ShowNear(p.X, p.Y);
+        if (!activate) return;
+        Activate();
+        Focus();
     }
 
     public void Toggle()
     {
         if (IsVisible && !_hiding) HideAnimated();
-        else ShowNearCursor();
+        else ShowNearCursor(activate: true);
     }
 
     /// <summary>Called when a shake was recognized during a drag.</summary>
@@ -223,7 +230,8 @@ internal partial class OverlayWindow : Window
         return DragDropEffects.None;
     }
 
-    private bool Accepts(DragEventArgs e) => !_vm.IsBusy && e.Data.GetDataPresent(DataFormats.FileDrop);
+    // While the user drags the finished ZIP out, never accept it back into the basket.
+    private bool Accepts(DragEventArgs e) => !_vm.IsBusy && !_draggingOut && e.Data.GetDataPresent(DataFormats.FileDrop);
 
     private void OnDragEnter(object sender, DragEventArgs e)
     {
@@ -234,7 +242,7 @@ internal partial class OverlayWindow : Window
         ShellDragImage.Enter(this, _hwnd, e);
         _autoHideTimer.Stop();
         if (!ok) return;
-        DropHint.Text = _vm.Basket.IsEmpty ? "Add to ZIP" : $"Add to {_vm.CountText}";
+        DropHint.Text = _vm.Basket.IsEmpty ? Strings.AddToZip : Strings.AddTo(_vm.CountText);
         _vm.IsDragOver = true;
         ((Storyboard)Resources["DropIn"]).Begin(this, true);
         ((Storyboard)Resources["DropBob"]).Begin(this, true);
@@ -285,17 +293,64 @@ internal partial class OverlayWindow : Window
         CountScale.BeginAnimation(ScaleTransform.ScaleYProperty, pop);
     }
 
+    // ---------- Drag the finished ZIP out (to Gmail, WhatsApp Web, Teams, a folder…) ----------
+
+    private Point _chipDownAt;
+    private bool _chipPressed;
+    private bool _draggingOut;
+
+    private void ZipChip_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _chipPressed = true;
+        _chipDownAt = e.GetPosition(this);
+    }
+
+    private void ZipChip_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_chipPressed) return;
+        if (e.LeftButton != MouseButtonState.Pressed)
+        {
+            _chipPressed = false;
+            return;
+        }
+
+        var delta = e.GetPosition(this) - _chipDownAt;
+        if (Math.Abs(delta.X) < SystemParameters.MinimumHorizontalDragDistance &&
+            Math.Abs(delta.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+        _chipPressed = false;
+        if (_vm.ResultPath is not { } path || !System.IO.File.Exists(path)) return;
+
+        _autoHideTimer.Stop();
+        _summonedByShake = false;
+        _draggingOut = true;
+        try
+        {
+            // Copy only: the receiver gets the file, our ZIP stays where the user saved it.
+            var effect = DragDrop.DoDragDrop(ZipChip, FileDataObject.Create(path), DragDropEffects.Copy);
+            DevLog.Write($"Drag-out finished: {effect}");
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException)
+        {
+            DevLog.Write($"Drag-out failed: {ex.Message}");
+        }
+        finally
+        {
+            _draggingOut = false;
+        }
+    }
+
     // ---------- Misc ----------
 
     private string? PickDestination(string suggestedName, string initialDirectory)
     {
         var dialog = new SaveFileDialog
         {
-            Title = "Save ZIP",
+            Title = Strings.SaveZipTitle,
             FileName = suggestedName,
             DefaultExt = ".zip",
             AddExtension = true,
-            Filter = "ZIP archive (*.zip)|*.zip",
+            Filter = Strings.ZipFilter,
             InitialDirectory = initialDirectory,
             OverwritePrompt = true,
         };

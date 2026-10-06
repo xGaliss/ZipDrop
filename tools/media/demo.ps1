@@ -9,6 +9,7 @@
 param(
     [Parameter(Mandatory)][string]$Exe,
     [string]$FFmpeg = "ffmpeg",
+    [string]$Lang = "en",   # UI language recorded (README is English)
     [int]$RegionX = 400, [int]$RegionY = 110, [int]$RegionW = 1120, [int]$RegionH = 640
 )
 $ErrorActionPreference = "Stop"
@@ -40,6 +41,7 @@ New-Item -ItemType Directory -Force "$demo\Out" | Out-Null
 # ---------- stage ----------
 Get-Process ZipDrop -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Milliseconds 500
+$env:ZIPDROP_LANG = $Lang
 Start-Process $Exe -ArgumentList "--background"
 Start-Sleep 2
 
@@ -125,18 +127,54 @@ try {
 
     # Create ZIP
     $overlay = $AE::FromHandle((Get-ZipDropWindow))
-    $btn = $overlay.FindFirst($TS::Descendants, (New-Object System.Windows.Automation.PropertyCondition($AE::NameProperty, "Create ZIP")))
+    $btn = $overlay.FindFirst($TS::Descendants, (New-Object System.Windows.Automation.PropertyCondition($AE::AutomationIdProperty, "CreateZip")))
     $b = $btn.Current.BoundingRectangle
     [ZdNative]::Glide([int]($b.X + $b.Width / 2), [int]($b.Y + $b.Height / 2), 600); Start-Sleep -Milliseconds 300
-    [ZdNative]::Click()
-    Start-Sleep -Milliseconds 250
+    # Stop recording BEFORE clicking: ffmpeg keeps capturing for a moment after "q", and the native
+    # Save dialog (user name, folders) must never end up in the video.
+    Start-Sleep -Milliseconds 500
     Stop-Recording $rec
-    Start-Sleep 1.2
+    Start-Sleep -Milliseconds 300
+    # Not recorded any more, so press it through UI Automation (reliable; Invoke blocks while the dialog
+    # is open, hence the background runspace).
+    $invoke = $btn.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+    $ps = [PowerShell]::Create().AddScript({ param($p) $p.Invoke() }).AddArgument($invoke); $null = $ps.BeginInvoke()
+    $dlg = $null
+    for ($i = 0; $i -lt 40 -and ($null -eq $dlg -or $dlg -eq [IntPtr]::Zero); $i++) {
+        Start-Sleep -Milliseconds 150
+        $dlg = (Find-SaveDialog)
+    }
+    if ($dlg -eq [IntPtr]::Zero) { throw "Save dialog did not open" }
+    [ZdNative]::SetForegroundWindow($dlg) | Out-Null
+    Start-Sleep -Milliseconds 600
     [System.Windows.Forms.SendKeys]::SendWait("^a")
     [System.Windows.Forms.SendKeys]::SendWait("$demo\Out\Delivery.zip")
-    $rec = Start-Recording $seg2
+    # Close the dialog BEFORE recording again: ffmpeg needs ~1 s to start capturing, and the dialog
+    # shows the user's name and folders. Wait until it is really gone.
     [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
-    Start-Sleep 3.5
+    for ($i = 0; $i -lt 40; $i++) {
+        Start-Sleep -Milliseconds 150
+        $dlg = (Find-SaveDialog)
+        if ($dlg -eq [IntPtr]::Zero) { break }
+    }
+    if ($dlg -ne [IntPtr]::Zero) { throw "Save dialog still open: refusing to record it" }
+    Start-Sleep -Milliseconds 300
+    $rec = Start-Recording $seg2
+    Start-Sleep 1.0
+
+    # Finale: drag the finished ZIP straight out of the basket into the Explorer window.
+    $ov = $AE::FromHandle((Get-ZipDropWindow))
+    $texts = $ov.FindAll($TS::Descendants, (New-Object System.Windows.Automation.PropertyCondition($AE::ControlTypeProperty, [System.Windows.Automation.ControlType]::Text)))
+    $chip = @($texts) | Where-Object { $_.Current.Name -like "*.zip" -and -not $_.Current.IsOffscreen } | Select-Object -First 1
+    if ($chip) {
+        $cr = $chip.Current.BoundingRectangle
+        [ZdNative]::Glide([int]($cr.X + $cr.Width / 2), [int]($cr.Y + $cr.Height / 2), 600); Start-Sleep -Milliseconds 400
+        [ZdNative]::Down(); Start-Sleep -Milliseconds 150
+        [ZdNative]::Glide([int]($cr.X - 20), [int]($cr.Y + 20), 200)
+        [ZdNative]::Glide($RegionX + 160, $RegionY + 330, 900); Start-Sleep -Milliseconds 700
+        [ZdNative]::Up()
+        Start-Sleep 2.5
+    }
 }
 finally {
     [ZdNative]::Up()

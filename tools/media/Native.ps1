@@ -13,6 +13,7 @@ public static class ZdNative {
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint f);
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] static extern void mouse_event(uint f, int dx, int dy, uint d, IntPtr e);
   [DllImport("user32.dll")] static extern int GetSystemMetrics(int i);
   [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT p);
@@ -81,4 +82,14 @@ function Save-Region([int]$X, [int]$Y, [int]$W, [int]$H, [string]$Path) {
     $bmp = New-Object System.Drawing.Bitmap $W, $H
     $g = [System.Drawing.Graphics]::FromImage($bmp); $g.CopyFromScreen($X, $Y, 0, 0, $bmp.Size); $g.Dispose()
     $bmp.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
+}
+
+# The native Save dialog (any UI language). Owned top-level window: UIA lists it under its owner,
+# so look it up with EnumWindows instead. Returns IntPtr.Zero when it isn't open.
+function Find-SaveDialog {
+    foreach ($t in @("Save ZIP", "Guardar ZIP")) {
+        $h = Get-ZipDropWindow $t
+        if ($h -ne [IntPtr]::Zero) { return $h }
+    }
+    return [IntPtr]::Zero
 }

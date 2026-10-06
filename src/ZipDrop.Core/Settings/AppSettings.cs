@@ -11,8 +11,8 @@ public sealed record AppSettings
     public bool ShakeEnabled { get; init; } = true;
     public ShakeSensitivity ShakeSensitivity { get; init; } = ShakeSensitivity.Medium;
 
-    /// <summary>Human-readable, e.g. "Ctrl+Shift+Z". Parsed by the app layer.</summary>
-    public string GlobalShortcut { get; init; } = "Ctrl+Shift+Z";
+    /// <summary>Human-readable, e.g. "Ctrl+Alt+Z". Parsed by the app layer, which may pick another default on first run.</summary>
+    public string GlobalShortcut { get; init; } = "Ctrl+Alt+Z";
 
     public bool ClearBasketAfterZip { get; init; } = true;
 }

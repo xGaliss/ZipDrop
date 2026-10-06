@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ZipDrop drop test — waiting</title>
+<style>
+  html, body { margin: 0; height: 100%; font: 16px system-ui; background: #1c1c21; color: #eee; }
+  #zone { position: fixed; inset: 0; display: grid; place-items: center; border: 3px dashed #6e7bff; }
+</style>
+<!-- Used by tools/e2e/drag-out-browser.ps1: proves a browser (like Gmail/WhatsApp Web uploads)
+     receives the ZIP dragged out of ZipDrop. The result is written to the page title. -->
+<div id="zone">Drop the ZIP here</div>
+<script>
+  const zone = document.getElementById('zone');
+  addEventListener('dragover', e => e.preventDefault());
+  addEventListener('drop', e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    const msg = f ? `RECEIVED ${f.name} ${f.size}` : 'RECEIVED nothing';
+    document.title = msg;
+    zone.textContent = msg;
+  });
+</script>

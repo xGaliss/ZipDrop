@@ -90,7 +90,7 @@ internal partial class SettingsWindow : Window
         if (_capturing) return;
         _capturing = true;
         _suspendHotkey(true); // otherwise the current hotkey would swallow the keystroke
-        ShortcutText.Text = "Press keys…";
+        ShortcutText.Text = Strings.PressKeys;
         ShortcutButton.Focus();
     }
 
@@ -117,7 +117,7 @@ internal partial class SettingsWindow : Window
 
         if (!HotkeyGesture.IsValid(mods, key))
         {
-            ShowError(ShortcutError, "Use Ctrl, Alt or Win plus a key.");
+            ShowError(ShortcutError, Strings.ShortcutNeedsModifier);
             return;
         }
 

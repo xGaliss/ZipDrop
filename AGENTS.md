@@ -8,7 +8,9 @@ documentos afectados (decisión nueva → `DECISIONS.md`; limitación → `KNOWN
 - `Basket` solo se toca desde el hilo de UI. El callback del hook de ratón debe seguir siendo trivial.
 - Nunca devolver `DragDropEffects.Move` en un drop. Nunca sobrescribir entradas del ZIP.
 - Parámetros del shake: solo en `ShakeOptions`. Cambios en el algoritmo → añadir trayectorias en `ShakeDetectorTests`.
-- Comentarios de código y textos de UI en inglés; documentación en español.
+- Comentarios de código en inglés. Textos de UI: SIEMPRE en `src/ZipDrop/Strings.cs`, en inglés y español
+  (nunca literales en XAML/C#). Controles nuevos: `AutomationProperties.AutomationId` fijo en inglés.
+- Documentación de `docs/` en español.
 - Comprobar: `dotnet build` sin warnings, `dotnet test` en verde. E2E opcional: `tools/e2e`.
 - Imágenes del README/promo: `tools/media` (capture, social, demo). Nunca grabar el panel de navegación
   del Explorador ni diálogos que muestren el nombre/carpetas del usuario.

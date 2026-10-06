@@ -54,7 +54,7 @@ public partial class App : Application
         _vm.SettingsRequested += OpenSettings;
         _vm.ZipFinished += (message, isError) =>
         {
-            if (!_overlay.IsVisible) _tray?.ShowNotification(isError ? "ZipDrop — error" : "ZIP created", message, isError);
+            if (!_overlay.IsVisible) _tray?.ShowNotification(isError ? Strings.ErrorTitle : Strings.ZipCreated, message, isError);
         };
 
         // Trim memory whenever ZipDrop goes back to idling in the tray.
@@ -67,6 +67,7 @@ public partial class App : Application
         _messages = new MessageWindow("ZipDrop.Messages");
         _hotkey = new GlobalHotkey(_messages);
         _hotkey.Pressed += () => _overlay.Toggle();
+        if (firstRun) _settings = _settings with { GlobalShortcut = PickDefaultShortcut() };
 
         _shake = new ShakeService();
         _shake.ShakeDetected += (x, y) => Dispatcher.BeginInvoke(() => _overlay.SummonForDrag(x, y));
@@ -79,10 +80,9 @@ public partial class App : Application
 
         var result = ApplySettings(_settings, persist: firstRun, force: true);
         if (result.ShortcutError is not null)
-            _tray.ShowNotification("Shortcut unavailable", result.ShortcutError + " Change it in Settings.", warning: true);
+            _tray.ShowNotification(Strings.ShortcutUnavailableTitle, result.ShortcutError + " " + Strings.ChangeInSettings, warning: true);
         else if (firstRun)
-            _tray.ShowNotification("ZipDrop is running",
-                $"Press {_settings.GlobalShortcut} or shake while dragging files to open the basket.");
+            _tray.ShowNotification(Strings.RunningTitle, Strings.RunningText(_settings.GlobalShortcut));
 
         _single.Listen(request => Dispatcher.BeginInvoke(() => HandleRequest(request)));
 
@@ -119,11 +119,11 @@ public partial class App : Application
         {
             if (!HotkeyGesture.TryParse(next.GlobalShortcut, out var gesture))
             {
-                shortcutError = $"\"{next.GlobalShortcut}\" is not a valid shortcut.";
+                shortcutError = Strings.ShortcutInvalid(next.GlobalShortcut);
             }
             else if (!_hotkey!.Register(gesture))
             {
-                shortcutError = $"{gesture} is already used by another app.";
+                shortcutError = Strings.ShortcutTaken(gesture.ToString());
                 if (!force && HotkeyGesture.TryParse(_settings.GlobalShortcut, out var previous)) _hotkey.Register(previous);
             }
             if (shortcutError is not null && !force) next = next with { GlobalShortcut = _settings.GlobalShortcut };
@@ -132,7 +132,7 @@ public partial class App : Application
         _shake!.Configure(next.ShakeEnabled, next.ShakeSensitivity);
         DevLog.Write($"Settings applied: shake={next.ShakeEnabled}/{next.ShakeSensitivity} hook={_shake.IsEnabled} hotkey={_hotkey!.Current}");
         if (next.ShakeEnabled && !_shake.IsEnabled)
-            shakeError = "Shake detection is unavailable (the mouse hook could not be installed).";
+            shakeError = Strings.ShakeUnavailable;
 
         StartupRegistration.Apply(next.LaunchAtStartup);
 
@@ -143,6 +143,24 @@ public partial class App : Application
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Log(ex); }
         }
         return new SettingsApplyResult(shortcutError, shakeError);
+    }
+
+    /// <summary>
+    /// Default shortcut for NEW installs (existing settings are never changed). Ctrl+Alt is AltGr on many
+    /// layouts (Polish AltGr+Z = "ż"), so a candidate that types a character, or that another app owns,
+    /// is skipped. Ctrl+Shift+Z (Redo in many apps) is the last resort.
+    /// </summary>
+    private string PickDefaultShortcut()
+    {
+        foreach (var candidate in new[] { "Ctrl+Alt+Z", "Win+Shift+Z", "Ctrl+Shift+Z" })
+        {
+            if (!HotkeyGesture.TryParse(candidate, out var g) || g.ProducesCharacter()) continue;
+            if (!_hotkey!.Register(g)) continue;
+            _hotkey.Unregister();
+            DevLog.Write($"Default shortcut: {candidate}");
+            return candidate;
+        }
+        return new AppSettings().GlobalShortcut;
     }
 
     private void SuspendHotkey(bool suspend)
@@ -168,19 +186,19 @@ public partial class App : Application
 
     private TrayMenuItem[] BuildTrayMenu() =>
     [
-        new("Open ZipDrop", () => _overlay.ShowNearCursor()),
-        new("New basket", NewBasket),
-        new("Settings", OpenSettings),
+        new(Strings.MenuOpen, () => _overlay.ShowNearCursor(activate: true)),
+        new(Strings.MenuNewBasket, NewBasket),
+        new(Strings.MenuSettings, OpenSettings),
         TrayMenuItem.Separator,
-        new("Exit", ExitApp),
+        new(Strings.MenuExit, ExitApp),
     ];
 
     private void UpdateTooltip()
     {
         if (_tray is null) return;
         _tray.Tooltip = _basket.IsEmpty
-            ? "ZipDrop — basket empty"
-            : $"ZipDrop — {SizeFormatter.Items(_basket.Count)} · {SizeFormatter.Format(_basket.TotalBytes)}";
+            ? Strings.TrayEmpty
+            : Strings.TrayItems(Strings.ItemCount(_basket.Count), SizeFormatter.Format(_basket.TotalBytes, Strings.Culture));
     }
 
     private void NewBasket()
@@ -189,19 +207,19 @@ public partial class App : Application
         if (!_basket.IsEmpty)
         {
             var answer = MessageBox.Show(
-                $"Start a new basket? The current one ({SizeFormatter.Items(_basket.Count)}) will be emptied.\nYour files are not touched.",
+                Strings.NewBasketConfirm(Strings.ItemCount(_basket.Count)),
                 "ZipDrop", MessageBoxButton.OKCancel, MessageBoxImage.Question);
             if (answer != MessageBoxResult.OK) return;
         }
         _vm.NewBasket();
-        _overlay.ShowNearCursor();
+        _overlay.ShowNearCursor(activate: true);
     }
 
     private void ExitApp()
     {
         if (_vm.IsBusy)
         {
-            var answer = MessageBox.Show("A ZIP is being created. Cancel it and exit?", "ZipDrop",
+            var answer = MessageBox.Show(Strings.ExitWhileZipping, "ZipDrop",
                 MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             if (answer != MessageBoxResult.OK) return;
             _vm.CancelZip();
@@ -215,7 +233,7 @@ public partial class App : Application
     {
         Log(e.Exception);
         e.Handled = true;
-        MessageBox.Show($"Something went wrong:\n{e.Exception.Message}\n\nZipDrop keeps running.", "ZipDrop",
+        MessageBox.Show(Strings.UnexpectedError(e.Exception.Message), "ZipDrop",
             MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 

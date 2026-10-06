@@ -41,6 +41,37 @@ internal readonly record struct HotkeyGesture(ModifierKeys Modifiers, Key Key)
         && key is not (Key.None or Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift
             or Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin or Key.System);
 
+    /// <summary>
+    /// True if, in the current keyboard layout, this combination types a character (e.g. Ctrl+Alt = AltGr:
+    /// Polish AltGr+Z = "ż"). Registering such a hotkey would stop the user from typing that character.
+    /// </summary>
+    public bool ProducesCharacter()
+    {
+        if (Modifiers.HasFlag(ModifierKeys.Windows)) return false;
+        var state = new byte[256];
+        if (Modifiers.HasFlag(ModifierKeys.Control)) state[0x11] = state[0xA2] = 0x80;
+        if (Modifiers.HasFlag(ModifierKeys.Alt)) state[0x12] = state[0xA4] = 0x80;
+        if (Modifiers.HasFlag(ModifierKeys.Shift)) state[0x10] = state[0xA0] = 0x80;
+        var vk = (uint)KeyInterop.VirtualKeyFromKey(Key);
+        var buffer = new System.Text.StringBuilder(8);
+        try
+        {
+            // Flag 0x4: don't change the keyboard state (no dead-key side effects). Windows 10 1607+.
+            var n = ToUnicodeEx(vk, MapVirtualKey(vk, 0), state, buffer, buffer.Capacity, 0x4, GetKeyboardLayout(0));
+            return n != 0 && buffer.Length > 0 && !char.IsControl(buffer[0]);
+        }
+        catch (EntryPointNotFoundException) { return false; }
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int ToUnicodeEx(uint vk, uint scan, byte[] state, System.Text.StringBuilder buffer, int size, uint flags, IntPtr layout);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint MapVirtualKey(uint code, uint mapType);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr GetKeyboardLayout(uint threadId);
+
     public override string ToString()
     {
         var parts = new List<string>();

@@ -18,6 +18,14 @@ public class MiscTests : IDisposable
     public void Size_formatting(long bytes, string expected) => Assert.Equal(expected, SizeFormatter.Format(bytes));
 
     [Fact]
+    public void Size_formatting_uses_the_given_culture()
+    {
+        var es = System.Globalization.CultureInfo.GetCultureInfo("es-ES");
+        Assert.Equal("1,4 GB", SizeFormatter.Format(1503238553L, es));
+        Assert.Equal("143 MB", SizeFormatter.Format(143L * 1024 * 1024, es));
+    }
+
+    [Fact]
     public void Item_pluralization()
     {
         Assert.Equal("1 item", SizeFormatter.Items(1));
@@ -28,7 +36,7 @@ public class MiscTests : IDisposable
     public void Settings_round_trip_and_defaults()
     {
         var store = new SettingsStore(Path.Combine(_tmp.Root, "s", "settings.json"));
-        Assert.Equal("Ctrl+Shift+Z", store.Load().GlobalShortcut);
+        Assert.Equal("Ctrl+Alt+Z", store.Load().GlobalShortcut);
 
         store.Save(new AppSettings { ShakeSensitivity = ShakeSensitivity.High, GlobalShortcut = "Ctrl+Alt+D" });
         var loaded = store.Load();
